@@ -5,14 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Resultado {
+
     @JsonProperty("title")
     private String title;
+
     @JsonProperty("authors")
     private List<Autor> authors;
+
     @JsonProperty("languages")
     private List<String> languages;
+
     @JsonProperty("download_count")
     private String download_count;
 
@@ -46,5 +51,13 @@ public class Resultado {
 
     public void setDownload_count(String download_count) {
         this.download_count = download_count;
+    }
+
+    @Override
+    public String toString() {
+        return
+                "title='" + title + '\'' +
+                ", languages=" + languages +
+                ", download_count='" + download_count;
     }
 }
