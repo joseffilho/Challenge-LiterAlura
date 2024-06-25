@@ -9,13 +9,13 @@ import java.util.List;
 public class Biblioteca {
 
     @JsonProperty("results")
-    private List<Resultado> results;
+    private List<Livro> results;
 
-    public List<Resultado> getResults() {
+    public List<Livro> getResults() {
         return results;
     }
 
-    public void setResults(List<Resultado> results) {
+    public void setResults(List<Livro> results) {
         this.results = results;
     }
 }
