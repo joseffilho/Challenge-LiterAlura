@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Entity
 @Table(name = "autores")
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -13,38 +17,17 @@ public class Autor {
     private Long id;
 
     @Column(unique = true)
-    @JsonProperty("name")
-    private String name;
+    private String nome;
+    private int dataDeNascimento;
+    private int dataDeFalecimento;
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Livro> livros = new ArrayList<>();
 
-    @JsonProperty("birth_year")
-    private Integer birth_year;
-
-    @JsonProperty("death_year")
-    private Integer death_year;
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getBirth_year() {
-        return birth_year;
-    }
-
-    public void setBirth_year(Integer birth_year) {
-        this.birth_year = birth_year;
-    }
-
-    public Integer getDeath_year() {
-        return death_year;
-    }
-
-    public void setDeath_year(Integer death_year) {
-        this.death_year = death_year;
+    public Autor(){}
+    public Autor(DadosAutor data) {
+        this.nome = data.nomeDoAutor();
+        this.dataDeNascimento = data.anoDeNascimento();
+        this.dataDeFalecimento = data.anoDeFalecimento();
     }
 
     public Long getId() {
@@ -55,12 +38,43 @@ public class Autor {
         this.id = id;
     }
 
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public int getDataDeNascimento() {
+        return dataDeNascimento;
+    }
+
+    public void setDataDeNascimento(int dataDeNascimento) {
+        this.dataDeNascimento = dataDeNascimento;
+    }
+
+    public int getDataDeFalecimento() {
+        return dataDeFalecimento;
+    }
+
+    public void setDataDeFalecimento(int dataDeFalecimento) {
+        this.dataDeFalecimento = dataDeFalecimento;
+    }
+
+    public List<Livro> getLivros() {
+        return livros;
+    }
+
+    public void setLivros(List<Livro> livros) {
+        this.livros = livros;
+    }
+
     @Override
     public String toString() {
-        return "Autor{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", birth_year=" + birth_year +
-                ", death_year=" + death_year + '}';
+        return
+                "nome='" + nome + '\'' +
+                ", dataDeNascimento=" + dataDeNascimento +
+                ", dataDeFalecimento=" + dataDeFalecimento;
     }
 }

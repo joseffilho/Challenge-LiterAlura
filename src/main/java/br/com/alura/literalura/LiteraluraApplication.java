@@ -1,8 +1,8 @@
 package br.com.alura.literalura;
 
 
-import br.com.alura.literalura.model.repository.AutorRepository;
-import br.com.alura.literalura.model.repository.LivroRepository;
+import br.com.alura.literalura.repository.AutorRepository;
+import br.com.alura.literalura.repository.LivroRepository;
 import br.com.alura.literalura.principal.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -15,7 +15,7 @@ import java.io.IOException;
 public class LiteraluraApplication implements CommandLineRunner {
 
     @Autowired
-    private LivroRepository repositorio;
+    private LivroRepository repositorioLivro;
 
     @Autowired
     private AutorRepository autorRepositorio;
@@ -26,7 +26,7 @@ public class LiteraluraApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Principal principal = new Principal(repositorio, autorRepositorio);
+        Principal principal = new Principal(repositorioLivro, autorRepositorio);
         principal.exibeMenu();
     }
 

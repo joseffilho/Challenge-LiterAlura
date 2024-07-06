@@ -1,7 +1,5 @@
 package br.com.alura.literalura.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,9 +22,7 @@ public class HttpClientService {
         try {
             response = client
                     .send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (IOException|InterruptedException e) {
             throw new RuntimeException(e);
         }
 

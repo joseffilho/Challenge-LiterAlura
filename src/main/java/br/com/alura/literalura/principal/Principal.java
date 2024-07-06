@@ -1,29 +1,27 @@
 package br.com.alura.literalura.principal;
 
-import br.com.alura.literalura.model.Autor;
-import br.com.alura.literalura.model.Biblioteca;
-import br.com.alura.literalura.model.Livro;
-import br.com.alura.literalura.model.repository.AutorRepository;
-import br.com.alura.literalura.model.repository.LivroRepository;
+import br.com.alura.literalura.model.*;
+import br.com.alura.literalura.repository.AutorRepository;
+import br.com.alura.literalura.repository.LivroRepository;
 import br.com.alura.literalura.service.HttpClientService;
 import br.com.alura.literalura.service.MapeandoDados;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Principal {
     Scanner leitura = new Scanner(System.in);
+    private MapeandoDados conversor = new MapeandoDados();
+    private HttpClientService clientService = new HttpClientService();
+    private final String URL = "https://gutendex.com/books/?search=";
 
-    private List<Livro> livroList = new ArrayList<>();
-    private List<Autor> autorList = new ArrayList<>();
+    private LivroRepository livroRepository;
+    private AutorRepository autorRepository;
 
-    public Principal(LivroRepository repositorio, AutorRepository autorRepositorio) {
-        this.repositorio = repositorio;
+    public Principal(LivroRepository livroRepository, AutorRepository autorRepositorio) {
+        this.livroRepository = livroRepository;
         this.autorRepository = autorRepositorio;
     }
-
 
 
     public void exibeMenu() throws IOException, InterruptedException {
@@ -45,10 +43,10 @@ public class Principal {
         while (opcao != 0) {
             System.out.println(text);
             System.out.println("Digite o número desejado: ");
-            int numeroDigitado = leitura.nextInt();
+            opcao = leitura.nextInt();
             leitura.nextLine();
 
-            switch (numeroDigitado) {
+            switch (opcao) {
                 case 1:
                     buscaLivroPeloTitulo();
                     break;
@@ -63,7 +61,6 @@ public class Principal {
                     break;
                 case 5:
                     listaLivrosPorIdioma();
-                    //listar livros em um determinado idioma
                     break;
                 case 0:
                     System.out.println("saindo.....");
@@ -71,95 +68,84 @@ public class Principal {
                     break;
                 default:
                     System.out.println("Opção inválida. Tente novamente.");
+                    break;
             }
         }
     }
-
-    private void buscaLivroPeloTitulo() throws IOException, InterruptedException {
-        System.out.println("Insira o nome do livro que você deseja procurar ");
-        nomeLivro = leitura.nextLine().replace(" ", "%20");
-        exibeLacoFor();
-    }
-    private void listaLivroRegistrado() {
-        livroList.forEach(System.out::println);
-    }
-    private void listaAutoresRegistrados() {
-        System.out.println("Autores registrados: " + autorList);
-    }
-    private void listaAutoresVivos() {
-        System.out.println("Digite o ano desejado: ");
-        int ano = leitura.nextInt();
-        if (ano > autorMorreu) {
-            System.out.println("Este autor já morreu! ");
-        } else if (ano < autorNasceu) {
-            System.out.println("Este autor ainda não nasceu! ");
-        } else {
-            System.out.println("Este autor ainda está vivo! ");
-        }
-    }
-    private void listaLivrosPorIdioma() {
-    }
-
-
-
-    private LivroRepository repositorio;
-    private AutorRepository autorRepository;
-
-
-    String livroTitle;
-    String livroIdioma;
-    int livroDownload;
-
-    String autorNome;
-    Integer autorMorreu = 0;
-    Integer autorNasceu = 0;
 
     String nomeLivro;
-    public void exibeLacoFor() throws IOException, InterruptedException {
-        HttpClientService clientService = new HttpClientService();
-        var json = clientService.sendGetRequest("https://gutendex.com/books/?search=" + nomeLivro);
-
-        MapeandoDados mapeando = new MapeandoDados();
-        Biblioteca dados = mapeando.pegarDados(json, Biblioteca.class);
-
-        for (Livro livro : dados.getResults()) {
-            livroList.add(livro);
-            livroTitle = livro.getTitle();
-
-            repositorio.save(livro);
-
-            System.out.println("------- LIVRO -------");
-            System.out.println("Title: " + livro.getTitle());
-            for (Autor autor : livro.getAuthors()) {
-                autorList.add(autor);
-                autorNome = autor.getName();
-
-                autorRepository.save(autor);
-
-                System.out.println("Author Name: " + autor.getName());
-
-                autorNasceu = autor.getBirth_year();
-                autorMorreu = autor.getDeath_year();
-            }
-            for (String idioma : livro.getLanguages())
-                livroIdioma = idioma;
-            System.out.println("Language: " + livro.getLanguages());
-            livroDownload = livro.getDownload_count();
-            System.out.println("Download_count: " + livro.getDownload_count());
-        }
-
-
+    private void buscaLivroPeloTitulo() throws IOException, InterruptedException {
+        System.out.println("Insira o nome do livro que você deseja procurar ");
+        nomeLivro = leitura.nextLine();
+        var dados = clientService.sendGetRequest(URL + nomeLivro.replace(" ", "%20"));
+        salvarNoDB(dados);
     }
-//    private Resultado salvaDados() {
-//        System.out.println("------- LIVRO -------");
-//        System.out.println("Title: " + livroTitle);
-//        System.out.println("Author Name: " + autorNome);
-//        System.out.println("Language: " + livroIdioma);
-//        System.out.println("Download_count: " + livroDownload);
-//        return null;
-//    }
 
+    private void salvarNoDB(String dados) {
+        try {
+            Livro livro = new Livro(conversor.pegarDados(dados, DadosLivro.class));
+            Autor autor = new Autor(conversor.pegarDados(dados, DadosAutor.class));
+            Autor autorDb = null;
+            Livro livroDb = null;
+            if (!autorRepository.existsByNome(autor.getNome())) {
+                autorRepository.save(autor);
+                autorDb = autor;
+            } else {
+                autorDb = autorRepository.findByNome(autor.getNome());
+            }
+            if (!livroRepository.existsByNome(livro.getNome())) {
+                livro.setAutor(autorDb);
+                livroRepository.save(livro);
+                livroDb = livro;
+            } else {
+                livroDb = livroRepository.findByNome(livro.getNome());
+            }
+            System.out.println(livroDb);
+        } catch (NullPointerException e) {
+            System.out.println("\n\n=============   L i v r o   n ã o   e n c o n t r a d o     ================\n\n");
+        }
+    }
 
+    private void listaLivroRegistrado() {
+        var bucasDB = livroRepository.findAll();
+        if (!bucasDB.isEmpty()) {
+            System.out.println("\nLivros cadastrados no Banco de Dados: ");
+            bucasDB.forEach(System.out::println);
+        } else {
+            System.out.println("\nNenhum livro encontrado no Banco de Dados!");
+        }
+    }
 
+    private void listaAutoresRegistrados() {
+        var buscaDb = autorRepository.findAll();
+        if (!buscaDb.isEmpty()) {
+            System.out.println("\nAutores cadastrados no Banco de Dados:");
+            buscaDb.forEach(System.out::println);
+        } else {
+            System.out.println("\nNenhum autor encontrado no Banco de Dados!");
+        }
+    }
+
+    private void listaAutoresVivos() {
+        System.out.println("\nQual ano deseja pesquisar?");
+        var anoSelecionado = leitura.nextInt();
+        leitura.nextLine();
+        var buscaAutoresNoDb = autorRepository.buscarPorAnoDeFalecimento(anoSelecionado);
+        if(!buscaAutoresNoDb.isEmpty()){
+            System.out.println("\n\nAtores vivos no ano de: " + anoSelecionado);
+            buscaAutoresNoDb.forEach(System.out::println);
+        }else {
+            System.out.println("\nNenhum autor encontrado para esta data!");
+        }
+    }
+
+    private void listaLivrosPorIdioma() {
+        var idiomasCadastrados = livroRepository.buscaIdiomaNoDB();
+        System.out.println("\nIdiomas cadastrados no Banco de Dados:");
+        idiomasCadastrados.forEach(System.out::println);
+        System.out.println("\nSelecione um dos idiomas cadastrados no Banco de Dados:\n");
+        var idiomaSelecionado = leitura.nextLine();
+        livroRepository.buscarPorIdioma(idiomaSelecionado).forEach(System.out::println);
+    }
 
 }

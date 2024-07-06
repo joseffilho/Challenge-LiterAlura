@@ -7,40 +7,28 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Table(name = "livros")
 public class Livro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(unique = true)
-    @JsonProperty("title")
-    private String title;
-
-    @Transient
-    @JsonProperty("authors")
-    private List<Autor> authors;
-
-
-    @JsonProperty("languages")
-    private List<String> languages;
-
-
-    @JsonProperty("download_count")
-    private int download_count;
-
-    @Transient
-    private Livro livro;
+    private String nome;
+    private String idioma;
+    private Integer quantidadeDeDownloads;
+    @ManyToOne
+    private Autor autor;
 
     public Livro() {
     }
 
-    public Livro(Livro livro) {
-        this.livro = livro;
+    public Livro(DadosLivro data) {
+        this.nome = data.nomeDoLivro();
+        this.idioma = String.join(",", data.idiomas());
+        this.quantidadeDeDownloads = data.quantidadeDeDownloads();
     }
-
 
     public Long getId() {
         return id;
@@ -50,46 +38,44 @@ public class Livro {
         this.id = id;
     }
 
-
-    public String getTitle() {
-        return title;
+    public String getNome() {
+        return nome;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public List<Autor> getAuthors() {
-        return authors;
+    public String getIdioma() {
+        return idioma;
     }
 
-    public void setAuthors(List<Autor> authors) {
-        this.authors = authors;
+    public void setIdioma(String idioma) {
+        this.idioma = idioma;
     }
 
-    public List<String> getLanguages() {
-        return languages;
+    public Integer getQuantidadeDeDownloads() {
+        return quantidadeDeDownloads;
     }
 
-    public void setLanguages(List<String> languages) {
-        this.languages = languages;
+    public void setQuantidadeDeDownloads(Integer quantidadeDeDownloads) {
+        this.quantidadeDeDownloads = quantidadeDeDownloads;
     }
 
-    public int getDownload_count() {
-        return download_count;
+    public Autor getAutor() {
+        return autor;
     }
 
-    public void setDownload_count(int download_count) {
-        this.download_count = download_count;
+    public void setAutor(Autor autor) {
+        this.autor = autor;
     }
 
     @Override
     public String toString() {
-        return "Resultado{" +
-                "title='" + title + '\'' +
-                ", authors=" + authors +
-                ", languages=" + languages +
-                ", download_count=" + download_count +
-                '}';
+        return
+                        "\nNome: " + nome +
+                        "\nIdioma: " + idioma +
+                        "\nAutor: " + autor.getNome() +
+                        "\nQuantidade De Downloads: " + quantidadeDeDownloads;
     }
 }
